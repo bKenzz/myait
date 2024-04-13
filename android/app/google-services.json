@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "832819356008",
+    "project_id": "myait-8d9a2",
+    "storage_bucket": "myait-8d9a2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:832819356008:android:aaff5eb35993a58ae7f6dd",
+        "android_client_info": {
+          "package_name": "com.example.myait"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6gsCH92THxV5k8NVrNyC1oI2oGDwSY90"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
