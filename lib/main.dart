@@ -1,14 +1,16 @@
 // ignore_for_file: prefer_const_constructors, unused_import
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:myait/models/myuser.dart';
+import 'package:myait/screens/authenticate/authenticate.dart';
 import 'package:myait/screens/authenticate/signin.dart';
 import 'package:myait/screens/wrapper.dart';
 import 'package:myait/services/auth.dart';
-import 'firebase_options.dart';
 import 'package:provider/provider.dart';
+
+import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +29,7 @@ class MyApp extends StatelessWidget {
       value: AuthService().user,
       initialData: null,
       child: MaterialApp(
-        home: Sign_in(),
+        home: Authenticate(),
       ),
     );
   }
