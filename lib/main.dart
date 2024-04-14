@@ -1,8 +1,13 @@
+// ignore_for_file: prefer_const_constructors, unused_import
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:myait/screens/home/wrapper.dart';
+import 'package:myait/models/myuser.dart';
+import 'package:myait/screens/wrapper.dart';
+import 'package:myait/services/auth.dart';
 import 'firebase_options.dart';
+import 'package:provider/provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,8 +21,13 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Wrapper(),
+    return StreamProvider<MyUser?>.value(
+      catchError: (_, __) => null,
+      value: AuthService().user,
+      initialData: null,
+      child: MaterialApp(
+        home: Wrapper(),
+      ),
     );
   }
 }

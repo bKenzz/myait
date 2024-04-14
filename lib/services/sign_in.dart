@@ -29,7 +29,7 @@ class _SignInState extends State<SignIn> {
                 print('no sign in');
               } else {
                 print('signed in');
-                print(result);
+                print(result.uid);
               }
             },
             child: Text('Sign in anon'),
