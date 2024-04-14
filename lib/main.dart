@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:myait/models/myuser.dart';
+import 'package:myait/screens/authenticate/signin.dart';
 import 'package:myait/screens/wrapper.dart';
 import 'package:myait/services/auth.dart';
 import 'firebase_options.dart';
@@ -26,7 +27,7 @@ class MyApp extends StatelessWidget {
       value: AuthService().user,
       initialData: null,
       child: MaterialApp(
-        home: Wrapper(),
+        home: Sign_in(),
       ),
     );
   }
