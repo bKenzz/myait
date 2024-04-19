@@ -100,23 +100,6 @@ class _RegState extends State<Reg> {
                     emptyvalidatortext: "Confirm your Password",
                   ),
 
-                  SizedBox(
-                    height: 12,
-                  ),
-                  //forgot password
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text('Forgot Password?',
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 73, 173, 255),
-                              fontWeight: FontWeight.bold,
-                            )),
-                      ],
-                    ),
-                  ),
                   const SizedBox(height: 13),
                   //sign up button
 
