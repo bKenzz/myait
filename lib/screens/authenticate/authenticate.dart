@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_constructors, unused_import, unnecessary_null_comparison
 
 import 'package:flutter/material.dart';
+import 'package:myait/screens/authenticate/reg.dart';
 import 'package:myait/screens/authenticate/register.dart';
 import 'package:myait/screens/authenticate/sign_in.dart';
 import 'package:myait/screens/authenticate/signin.dart';
@@ -21,9 +22,9 @@ class _AuthenticateState extends State<Authenticate> {
   @override
   Widget build(BuildContext context) {
     if (showSignIn) {
-      return Sign_in();
+      return Sign_in(toggleView: toggleView);
     } else {
-      return Register(toggleView: toggleView);
+      return Reg(toggleView: toggleView);
     }
   }
 }

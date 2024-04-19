@@ -7,6 +7,7 @@
 // ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors
 import 'package:myait/components/mybutton.dart';
 import 'package:myait/components/square_tile.dart';
+import 'package:myait/services/auth.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -16,7 +17,9 @@ import '../../components/mytextfield2.dart';
 import '../../services/auth.dart';
 
 class Sign_in extends StatefulWidget {
-  const Sign_in({super.key});
+  final Function toggleView;
+
+  const Sign_in({super.key, required this.toggleView});
 
   @override
   State<Sign_in> createState() => _Sign_inState();
@@ -41,7 +44,7 @@ class _Sign_inState extends State<Sign_in> {
               child: Column(
                 children: [
                   SizedBox(
-                    height: 30,
+                    height: 15,
                     width: 30,
                   ),
                   //logo
@@ -112,6 +115,7 @@ class _Sign_inState extends State<Sign_in> {
                         }
                       }
                     },
+                    buttontext: 'Sign In',
                   ),
                   SizedBox(
                     height: 8,
@@ -177,13 +181,21 @@ class _Sign_inState extends State<Sign_in> {
                         style: TextStyle(color: Colors.white),
                       ),
                       const SizedBox(width: 4),
-                      const Text(
-                        'Register now',
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 73, 173, 255),
-                          fontWeight: FontWeight.bold,
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          foregroundColor:
+                              Color.fromARGB(255, 73, 173, 255), // Text Color
                         ),
-                      ),
+                        onPressed: () {
+                          widget.toggleView();
+                        },
+                        child: const Text(
+                          'Register now',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
                     ],
                   ),
                 ],
