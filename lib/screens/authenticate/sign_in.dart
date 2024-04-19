@@ -49,6 +49,7 @@ class _SignInState extends State<SignIn> {
                   onChanged: (val) {
                     setState(() => email = val);
                   },
+                  decoration: InputDecoration(),
                 ),
                 SizedBox(height: 20),
                 TextFormField(
@@ -81,10 +82,22 @@ class _SignInState extends State<SignIn> {
                   style: TextStyle(color: Colors.red, fontSize: 14),
                 ),
                 SizedBox(
-                  height: 50,
+                  height: 10,
                 ),
                 Divider(
                   thickness: 0.5,
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    dynamic result = await _auth.signInAnon();
+                    if (result == null) {
+                      print('no sign in');
+                    } else {
+                      print('signed in');
+                      print(result.uid);
+                    }
+                  },
+                  child: Text('Sign in anon'),
                 )
               ],
             ),
@@ -92,15 +105,3 @@ class _SignInState extends State<SignIn> {
     );
   }
 }
-// ElevatedButton(
-//             onPressed: () async {
-//               dynamic result = await _auth.signInAnon();
-//               if (result == null) {
-//                 print('no sign in');
-//               } else {
-//                 print('signed in');
-//                 print(result.uid);
-//               }
-//             },
-//             child: Text('Sign in anon'),
-//           )
