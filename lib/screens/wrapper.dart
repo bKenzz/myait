@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:myait/models/myuser.dart';
 import 'package:myait/screens/authenticate/authenticate.dart';
+import 'package:myait/screens/authenticate/verify.dart';
 import 'package:myait/screens/home/home.dart';
 import 'package:myait/screens/authenticate/sign_in.dart';
 import 'package:provider/provider.dart';
@@ -18,7 +19,7 @@ class Wrapper extends StatelessWidget {
     if (user == null) {
       return Authenticate();
     } else {
-      return Home();
+      return VerifyScreen();
     }
   }
 }

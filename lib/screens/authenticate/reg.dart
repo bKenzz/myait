@@ -148,10 +148,6 @@ class _RegState extends State<Reg> {
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                          child: Text(
-                            'Or continue with',
-                            style: TextStyle(color: Colors.white),
-                          ),
                         ),
                         Expanded(
                           child: Divider(
@@ -166,18 +162,7 @@ class _RegState extends State<Reg> {
                     height: 12,
                   ),
                   //google
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      // google button
-                      SquareTile(imagePath: 'assets/images/google.png'),
 
-                      SizedBox(width: 25),
-
-                      // apple button
-                      SquareTile(imagePath: 'assets/images/google.png')
-                    ],
-                  ),
                   //not a member? register now
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,

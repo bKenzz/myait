@@ -7,10 +7,10 @@
 // ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors
 import 'package:myait/components/mybutton.dart';
 import 'package:myait/components/square_tile.dart';
+import 'package:myait/screens/authenticate/forgot_password.dart';
 import 'package:myait/services/auth.dart';
-
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:myait/components/mytextfield.dart';
 
 import '../../components/mytextfield2.dart';
@@ -94,11 +94,26 @@ class _Sign_inState extends State<Sign_in> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Text('Forgot Password?',
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 73, 173, 255),
-                              fontWeight: FontWeight.bold,
-                            )),
+                        Expanded(
+                          // This will constrain the Row to the available space
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) {
+                                    return ForgotPasswordPage();
+                                  },
+                                ),
+                              );
+                            },
+                            child: Text('Forgot Password?',
+                                style: TextStyle(
+                                  color: Color.fromARGB(255, 73, 173, 255),
+                                  fontWeight: FontWeight.bold,
+                                )),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -106,6 +121,12 @@ class _Sign_inState extends State<Sign_in> {
                   //sign in button
                   MyButton(
                     onTap: () async {
+                      showDialog(
+                          context: context,
+                          builder: (context) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          });
                       if (_formKey.currentState!.validate()) {
                         dynamic result = await _auth.signInWithEmailAndPassword(
                             email.text, password.text);
@@ -113,6 +134,7 @@ class _Sign_inState extends State<Sign_in> {
                           setState(() => error =
                               'Could Not Sign In with Those Credentials');
                         }
+                        Navigator.pop(context);
                       }
                     },
                     buttontext: 'Sign In',
@@ -162,14 +184,20 @@ class _Sign_inState extends State<Sign_in> {
                   //google
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       // google button
-                      SquareTile(imagePath: 'assets/images/google.png'),
+                      SquareTile(
+                        imagePath: 'assets/images/google.png',
+                        onTap: () => AuthService().signInWithGoogle(),
+                      ),
 
                       SizedBox(width: 25),
 
                       // apple button
-                      SquareTile(imagePath: 'assets/images/google.png')
+                      SquareTile(
+                        imagePath: 'assets/images/google.png',
+                        onTap: () => AuthService().signInWithGoogle(),
+                      ),
                     ],
                   ),
                   //not a member? register now
