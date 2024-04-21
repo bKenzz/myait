@@ -6,11 +6,8 @@
 // #93C4D1 rgb(147, 196, 209)
 // ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors
 import 'package:myait/components/mybutton.dart';
-import 'package:myait/components/square_tile.dart';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:myait/components/mytextfield.dart';
 
 import '../../components/mytextfield2.dart';
 import '../../services/auth.dart';
@@ -112,8 +109,6 @@ class _RegState extends State<Reg> {
                           dynamic result =
                               await _auth.registerWithEmailAndPassword(
                                   email.text, password.text);
-                          result = await _auth.signInWithEmailAndPassword(
-                              email.text, password.text);
                           if (result == null) {
                             setState(() => error = ' The email is not valid');
                           }

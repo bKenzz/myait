@@ -1,7 +1,6 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
-import 'package:myait/services/auth.dart';
 
 class MyTextField2 extends StatelessWidget {
   const MyTextField2(
@@ -44,6 +43,5 @@ class MyTextField2 extends StatelessWidget {
             filled: true),
       ),
     );
-    ;
   }
 }

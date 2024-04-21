@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:myait/screens/home/home.dart';
 
 class VerifyScreen extends StatefulWidget {
@@ -17,6 +15,8 @@ class _VerifyScreenState extends State<VerifyScreen> {
   bool isEmailVerified = false;
   Timer? timer;
   bool canResendEmail = false;
+  late Timer _timerz;
+  int _start = 15;
   @override
   void initState() {
     super.initState();
@@ -31,14 +31,17 @@ class _VerifyScreenState extends State<VerifyScreen> {
         (_) => checkEmailVerified(),
       );
     }
+    startTimer();
   }
 
   @override
   void dispose() {
     timer?.cancel();
+    _timerz.cancel();
     super.dispose();
   }
 
+  @override
   Future checkEmailVerified() async {
     await FirebaseAuth.instance.currentUser?.reload();
     setState(() {
@@ -59,6 +62,24 @@ class _VerifyScreenState extends State<VerifyScreen> {
     }
   }
 
+  void startTimer() {
+    const oneSec = const Duration(seconds: 1);
+    _timerz = new Timer.periodic(
+      oneSec,
+      (Timer timer) {
+        if (_start == 0) {
+          setState(() {
+            timer.cancel();
+          });
+        } else {
+          setState(() {
+            _start--;
+          });
+        }
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) => isEmailVerified
       ? Home()
@@ -68,25 +89,27 @@ class _VerifyScreenState extends State<VerifyScreen> {
           ),
           body: Padding(
             padding: EdgeInsets.all(16),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'A verification email has been sent',
-                  style: TextStyle(fontSize: 20),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: canResendEmail ? sendVerificationEmail : null,
-                  child: const Text('Sign in anon'),
-                ),
-                TextButton(
-                    onPressed: () async {
-                      FirebaseAuth.instance.signOut();
-                    },
-                    child: Text('Cancel'))
-              ],
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'A verification email has been sent',
+                    style: TextStyle(fontSize: 20),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: canResendEmail ? sendVerificationEmail : null,
+                    child: Text('Resend a Link \n $_start'),
+                  ),
+                  TextButton(
+                      onPressed: () async {
+                        FirebaseAuth.instance.signOut();
+                      },
+                      child: Text('Cancel'))
+                ],
+              ),
             ),
           ),
         );

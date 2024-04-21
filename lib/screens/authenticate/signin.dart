@@ -9,12 +9,9 @@ import 'package:myait/components/mybutton.dart';
 import 'package:myait/components/square_tile.dart';
 import 'package:myait/screens/authenticate/forgot_password.dart';
 import 'package:myait/services/auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/material.dart';
-import 'package:myait/components/mytextfield.dart';
 
 import '../../components/mytextfield2.dart';
-import '../../services/auth.dart';
 
 class Sign_in extends StatefulWidget {
   final Function toggleView;

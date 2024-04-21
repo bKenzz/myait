@@ -30,7 +30,7 @@ class AuthService {
   Stream<MyUser?> get user {
     return _auth
         .authStateChanges()
-        .map((User? user) => _userFromFirebaseUser(user!));
+        .map((User? user) => user != null ? _userFromFirebaseUser(user) : null);
   }
 
 // sign in with email and passwrod
