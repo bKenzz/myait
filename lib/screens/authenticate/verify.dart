@@ -41,7 +41,6 @@ class _VerifyScreenState extends State<VerifyScreen> {
     super.dispose();
   }
 
-  @override
   Future checkEmailVerified() async {
     await FirebaseAuth.instance.currentUser?.reload();
     setState(() {

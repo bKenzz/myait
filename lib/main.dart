@@ -8,6 +8,7 @@ import 'package:myait/screens/authenticate/authenticate.dart';
 import 'package:myait/screens/authenticate/reg.dart';
 import 'package:myait/screens/authenticate/signin.dart';
 import 'package:myait/screens/home/home.dart';
+import 'package:myait/screens/home/myprofile.dart';
 import 'package:myait/screens/wrapper.dart';
 import 'package:myait/services/auth.dart';
 import 'package:provider/provider.dart';
@@ -23,7 +24,6 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return StreamProvider<MyUser?>.value(

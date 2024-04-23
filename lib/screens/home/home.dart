@@ -5,11 +5,22 @@
 // #3E88A5 rgb(62, 136, 165)
 // #93C4D1 rgb(147, 196, 209)
 import 'package:flutter/material.dart';
+import 'package:myait/components/mybutton.dart';
+import 'package:myait/screens/wrapper.dart';
 import 'package:myait/services/auth.dart';
+import 'package:myait/services/editprofile.dart';
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
   Home({super.key});
+
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
   final AuthService _auth = new AuthService();
+  final EditProfile currentUser = new EditProfile();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,6 +43,12 @@ class Home extends StatelessWidget {
             label: const Text('logout'),
           ),
         ],
+      ),
+      body: MyButton(
+        onTap: () {
+          currentUser.editName("herrooo");
+        },
+        buttontext: 'Sign In',
       ),
     );
   }
