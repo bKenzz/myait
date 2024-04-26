@@ -12,7 +12,7 @@ class AuthService {
 // create user object based on firebase user
 
   MyUser? _userFromFirebaseUser(User user) {
-    return user != null ? MyUser(uid: user.uid) : null;
+    return user != null ? MyUser(uid: user.uid, email: user.email!) : null;
   }
 
 // sign in user
@@ -41,12 +41,8 @@ class AuthService {
       UserCredential result = await _auth.signInWithEmailAndPassword(
           email: email, password: password);
       User? user = result.user;
-      MyUser uss = new MyUser(uid: user!.uid);
-      uss.email = user.email!;
-      _fireStore
-          .collection('users')
-          .doc(user!.uid)
-          .set(uss.toJson(), SetOptions(merge: true));
+      MyUser uss = new MyUser(uid: user!.uid, email: user.email!);
+      ;
       return _userFromFirebaseUser(user!);
     } catch (e) {
       print(e.toString());
@@ -60,12 +56,11 @@ class AuthService {
       UserCredential result = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
       User? user = result.user;
-      MyUser uss = new MyUser(uid: user!.uid);
-      uss.email = user.email!;
+      MyUser uss = new MyUser(uid: user!.uid, email: user.email!);
       _fireStore
           .collection('users')
           .doc(user!.uid)
-          .set(uss.toJson(), SetOptions(merge: true));
+          .set(uss.toMap(), SetOptions(merge: true));
       return _userFromFirebaseUser(user!);
     } catch (e) {
       print(e.toString());
@@ -93,12 +88,15 @@ class AuthService {
 
       final credential = GoogleAuthProvider.credential(
           accessToken: gAuth?.accessToken, idToken: gAuth?.idToken);
-      MyUser uss = new MyUser(uid: gUser!.id);
-      uss.email = gUser!.email!;
-      _fireStore
-          .collection('users')
-          .doc(gUser!.id)
-          .set(uss.toJson(), SetOptions(merge: true));
+      MyUser uss = new MyUser(uid: gUser!.id, email: gUser!.email);
+
+      if (_fireStore.collection('users').doc(gUser!.id) == null) {
+        _fireStore
+            .collection('users')
+            .doc(gUser!.id)
+            .set(uss.toMap(), SetOptions(merge: true));
+      }
+      ;
       return await FirebaseAuth.instance.signInWithCredential(credential);
     } catch (e) {}
   }

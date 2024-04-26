@@ -9,7 +9,7 @@ class UserDb extends GetxController {
   final _db = FirebaseFirestore.instance;
 
   editUserName(MyUser user) {
-    _db.collection('Users').add(user.toJson());
+    _db.collection('Users').add(user.toMap());
     _db.collection('Users').get();
   }
 }
