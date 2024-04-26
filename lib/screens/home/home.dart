@@ -19,7 +19,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final AuthService _auth = new AuthService();
-  final EditProfile currentUser = new EditProfile();
+  final EditProfile currentUserFunctions = new EditProfile();
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +46,7 @@ class _HomeState extends State<Home> {
       ),
       body: MyButton(
         onTap: () {
-          currentUser.editName("herrooo");
+          currentUserFunctions.editName("mimimi");
         },
         buttontext: 'Sign In',
       ),

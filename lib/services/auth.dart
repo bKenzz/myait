@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_const_constructors, unused_import, unnecessary_null_comparison
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -7,6 +8,7 @@ import 'package:myait/models/myuser.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
 // create user object based on firebase user
 
   MyUser? _userFromFirebaseUser(User user) {
@@ -39,6 +41,12 @@ class AuthService {
       UserCredential result = await _auth.signInWithEmailAndPassword(
           email: email, password: password);
       User? user = result.user;
+      MyUser uss = new MyUser(uid: user!.uid);
+      uss.email = user.email!;
+      _fireStore
+          .collection('users')
+          .doc(user!.uid)
+          .set(uss.toJson(), SetOptions(merge: true));
       return _userFromFirebaseUser(user!);
     } catch (e) {
       print(e.toString());
@@ -52,6 +60,12 @@ class AuthService {
       UserCredential result = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
       User? user = result.user;
+      MyUser uss = new MyUser(uid: user!.uid);
+      uss.email = user.email!;
+      _fireStore
+          .collection('users')
+          .doc(user!.uid)
+          .set(uss.toJson(), SetOptions(merge: true));
       return _userFromFirebaseUser(user!);
     } catch (e) {
       print(e.toString());
@@ -68,6 +82,7 @@ class AuthService {
       return null;
     }
   }
+  // after creatheing the user createa a user document
 
   //google sign in
   signInWithGoogle() async {
@@ -75,9 +90,15 @@ class AuthService {
       final GoogleSignInAccount? gUser = await GoogleSignIn().signIn();
 
       final GoogleSignInAuthentication? gAuth = await gUser?.authentication;
+
       final credential = GoogleAuthProvider.credential(
           accessToken: gAuth?.accessToken, idToken: gAuth?.idToken);
-
+      MyUser uss = new MyUser(uid: gUser!.id);
+      uss.email = gUser!.email!;
+      _fireStore
+          .collection('users')
+          .doc(gUser!.id)
+          .set(uss.toJson(), SetOptions(merge: true));
       return await FirebaseAuth.instance.signInWithCredential(credential);
     } catch (e) {}
   }
