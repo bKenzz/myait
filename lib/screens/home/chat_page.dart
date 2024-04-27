@@ -1,13 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:myait/components/chat_bubble.dart';
 import 'package:myait/components/mytextfield.dart';
 import 'package:myait/services/chat/chat_service.dart';
 
 class ChatPage extends StatefulWidget {
   final String reciverUserId;
   final String reciverUsername;
-  const ChatPage(
+  ChatPage(
       {super.key, required this.reciverUserId, required this.reciverUsername});
 
   @override
@@ -72,18 +73,49 @@ class _ChatPageState extends State<ChatPage> {
   Widget _buildMessageItem(DocumentSnapshot document) {
     Map<String, dynamic> data = document.data() as Map<String, dynamic>;
 
-    //align the messgae to the right if the sentes is the current user, otherwise left
-    var aligment = (data['senderId'] == _firebaseAuth.currentUser!.uid)
-        ? Alignment.centerRight
-        : Alignment.centerLeft;
-    return Container(
-      alignment: aligment,
-      child: Column(
+    bool isCurrentUser = data['senderId'] == _firebaseAuth.currentUser!.uid;
+    String profileImageUrl = isCurrentUser
+        ? 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'
+        : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';
+
+    // Set a cross alignment that matches the message bubble alignment.
+    CrossAxisAlignment crossAlignment =
+        isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      child: Row(
+        mainAxisAlignment:
+            isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
-          (aligment == Alignment.centerRight)
-              ? Text('You')
-              : Text(widget.reciverUsername),
-          Text(data['text'])
+          if (!isCurrentUser) ...[
+            CircleAvatar(
+              backgroundImage: NetworkImage(profileImageUrl),
+              radius: 20,
+            ),
+            SizedBox(width: 8),
+          ],
+          Column(
+            crossAxisAlignment: crossAlignment,
+            children: [
+              Text(isCurrentUser ? 'You' : widget.reciverUsername),
+              ChatBubble(
+                message: data['text'],
+                timestamp: data["timestamp"],
+                readStatus: false,
+                messageType: 'default',
+                forwarded: false,
+                senderId: data['senderId'],
+              ),
+            ],
+          ),
+          if (isCurrentUser) ...[
+            SizedBox(width: 8),
+            CircleAvatar(
+              backgroundImage: NetworkImage(profileImageUrl),
+              radius: 20,
+            ),
+          ],
         ],
       ),
     );

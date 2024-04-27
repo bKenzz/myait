@@ -6,10 +6,11 @@ import 'package:myait/models/message.dart';
 class ChatService extends ChangeNotifier {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
-  final DateTime timestamp = DateTime.now();
 
   Future<void> sendMessage(String receiverId, String message) async {
+    final Timestamp timestamp = Timestamp.now();
     //get current user info
+
     User? currentUser = _firebaseAuth.currentUser;
     if (currentUser == null) {
       throw Exception('No current user found');
@@ -30,7 +31,7 @@ class ChatService extends ChangeNotifier {
       print(e);
     }
     //create a new message
-    print('AADASDASD');
+    print(timestamp);
     Message newMessage = Message(
         receiverId: receiverId,
         senderId: currentUserId,

@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Message {
   String receiverId;
   String senderId;
   String text;
-  DateTime timestamp;
+  Timestamp timestamp;
   bool readStatus;
   String messageType;
   bool editedStatus = false;
@@ -24,7 +26,7 @@ class Message {
       'receiverId': receiverId,
       'senderId': senderId,
       'text': text,
-      'timestamp': timestamp.millisecondsSinceEpoch,
+      'timestamp': timestamp,
       'readStatus': readStatus,
       'messageType': messageType,
       'editedStatus': editedStatus,
@@ -37,7 +39,7 @@ class Message {
       receiverId: map['receiverId'],
       senderId: map['senderId'],
       text: map['text'],
-      timestamp: DateTime.fromMillisecondsSinceEpoch(map['timestamp']),
+      timestamp: map['timestamp'],
       readStatus: map['readStatus'],
       messageType: map['messageType'],
       editedStatus: map['editedStatus'],
