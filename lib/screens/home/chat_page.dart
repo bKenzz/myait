@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:myait/components/chat_bubble.dart';
 import 'package:myait/components/mytextfield.dart';
 import 'package:myait/services/chat/chat_service.dart';
@@ -20,15 +21,7 @@ class _ChatPageState extends State<ChatPage> {
   final ChatService _chatService = ChatService();
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  Future<void> sendMessage() async {
-    if (_messageController.text.isNotEmpty) {
-      print(_messageController);
-      await _chatService.sendMessage(
-          widget.reciverUserId, _messageController.text);
-      _messageController.clear();
-    }
-  }
+  ScrollController _scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +42,29 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+  Future<void> sendMessage() async {
+    if (_messageController.text.isNotEmpty) {
+      print(_messageController);
+      await _chatService.sendMessage(
+          widget.reciverUserId, _messageController.text);
+      _messageController.clear();
+    }
+  }
+
   // build message list
   Widget _buildMessageList() {
     return StreamBuilder(
@@ -62,6 +78,7 @@ class _ChatPageState extends State<ChatPage> {
             return const Text('Loading');
           }
           return ListView(
+            controller: _scrollController,
             children: snapshot.data!.docs
                 .map((document) => _buildMessageItem(document))
                 .toList(),
@@ -81,7 +98,7 @@ class _ChatPageState extends State<ChatPage> {
     // Set a cross alignment that matches the message bubble alignment.
     CrossAxisAlignment crossAlignment =
         isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start;
-
+    _scrollToBottom();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       child: Row(
@@ -99,13 +116,21 @@ class _ChatPageState extends State<ChatPage> {
             crossAxisAlignment: crossAlignment,
             children: [
               Text(isCurrentUser ? 'You' : widget.reciverUsername),
-              ChatBubble(
-                message: data['text'],
-                timestamp: data["timestamp"],
-                readStatus: false,
-                messageType: 'default',
-                forwarded: false,
-                senderId: data['senderId'],
+              GestureDetector(
+                onHorizontalDragEnd: (details) {
+                  int sensitivity = 8;
+                  if (details.primaryVelocity! < sensitivity) {
+                    //TODO FORWARD FUNCTION;
+                  }
+                },
+                child: ChatBubble(
+                  message: data['text'],
+                  timestamp: data["timestamp"],
+                  readStatus: false,
+                  messageType: 'default',
+                  forwarded: false,
+                  senderId: data['senderId'],
+                ),
               ),
             ],
           ),
@@ -123,24 +148,53 @@ class _ChatPageState extends State<ChatPage> {
 
   // build message input
   Widget _buildMessageInput() {
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            controller: _messageController,
-            decoration: InputDecoration(
-              hintText: 'Enter Message',
+    return Container(
+      padding: EdgeInsets.all(8.0), // Add padding around the input bar
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                  horizontal:
+                      12.0), // Add horizontal padding inside the TextField
+              decoration: BoxDecoration(
+                color: Colors
+                    .white, // Telegram uses a white or very light grey background
+                borderRadius: BorderRadius.circular(
+                    20.0), // Rounded corners for the TextField
+              ),
+              child: TextField(
+                controller: _messageController,
+                decoration: InputDecoration(
+                  hintText: 'Enter Message',
+                  border: InputBorder.none, // No border
+                  hintStyle: TextStyle(
+                      color: Colors.grey[400]), // Light grey color for hint
+                ),
+              ),
             ),
           ),
-        ),
-        IconButton(
-          icon: Icon(Icons.arrow_upward),
-          iconSize: 40,
-          onPressed: () {
-            sendMessage();
-          },
-        ),
-      ],
+          SizedBox(width: 8), // Spacing between TextField and Button
+          IconButton(
+            icon: Icon(Icons.send), // The paper plane icon used by Telegram
+            iconSize: 25,
+            color: Colors.blue, // Telegram's icon is typically blue
+            onPressed: () {
+              sendMessage();
+            },
+          ),
+        ],
+      ),
     );
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
   }
 }
