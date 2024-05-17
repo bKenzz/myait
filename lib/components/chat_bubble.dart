@@ -1,45 +1,70 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:myait/models/message.dart';
+import 'package:myait/services/chat/chat_service.dart';
 
 class ChatBubble extends StatefulWidget {
-  final String message;
-
+  String message;
+  final String id;
   Timestamp timestamp;
-
+  final String chatRoomId;
   String messageType;
-
+  Timestamp editedStatus;
   bool readStatus;
 
   bool forwarded;
 
   final String senderId;
 
-  ChatBubble(
-      {Key? key,
-      required this.message,
-      required this.senderId,
-      required this.timestamp,
-      required this.readStatus,
-      required this.messageType,
-      required this.forwarded})
-      : super(key: key);
+  ChatBubble({
+    Key? key,
+    required this.editedStatus,
+    required this.message,
+    required this.senderId,
+    required this.timestamp,
+    required this.readStatus,
+    required this.messageType,
+    required this.forwarded,
+    required this.id,
+    required this.chatRoomId,
+  }) : super(key: key);
 
   @override
   State<ChatBubble> createState() => _ChatBubbleState();
 }
 
 class _ChatBubbleState extends State<ChatBubble> {
-  bool editedStatus = false;
+  @override
+  void initState() {
+    super.initState();
+    editedStatus = widget.editedStatus;
+    if (editedStatus != widget.timestamp) {
+      setState(() {});
+    }
+  }
+
+  @override
+  void didUpdateWidget(ChatBubble oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.editedStatus != oldWidget.editedStatus) {
+      setState(() {
+        editedStatus = widget.editedStatus;
+      });
+    }
+  }
+
+  late Timestamp editedStatus;
   bool being_replyed = false;
   bool being_forwarded = false;
   double deg2rad(double deg) => deg * pi / 180;
   double posX = 0.0;
   double startPosX = 0.0;
+  ChatService _chatService = ChatService();
   @override
   Widget build(BuildContext context) {
     final maxWidth = MediaQuery.of(context).size.width * 0.9;
@@ -57,110 +82,240 @@ class _ChatBubbleState extends State<ChatBubble> {
 
     double textWidth = textPainter.width;
     print(textWidth);
-
-    return Container(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: maxWidth * 0.9,
-        ),
-        child: Stack(alignment: Alignment.center, children: [
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 100),
-            left: posX,
-            key: const ValueKey("item 1"),
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(3, 0, 5, 0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: Colors.blue,
+    return GestureDetector(
+      onLongPress: () {
+        print(widget.id);
+        showDialog(
+          barrierDismissible: true,
+          context: context,
+          builder: (BuildContext context) {
+            return BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 30,
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: AlertDialog(
+                        backgroundColor: Colors.transparent,
+                        content: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.blue,
+                          ),
+                          child: RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: formatMessage(widget.message),
+                                  style: TextStyle(
+                                      fontSize: 16, color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2.0),
+                    child: ElevatedButton.icon(
+                      icon: Icon(Icons
+                          .arrow_forward), // replace with your desired icon
+                      label: Text('Forward'),
+                      onPressed: () {
+                        // handle button press
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2.0),
+                    child: ElevatedButton.icon(
+                      icon: Icon(Icons.edit), // replace with your desired icon
+                      label: Text('Edit     '),
+                      onPressed: () {
+                        editMessage(context);
+                        // handle button press
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2.0),
+                    child: ElevatedButton.icon(
+                      icon: Icon(Icons.reply), // replace with your desired icon
+                      label: Text('Reply'),
+                      onPressed: () {
+                        // handle button press
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2.0),
+                    child: ElevatedButton.icon(
+                      icon: Icon(
+                          Icons.content_copy), // replace with your desired icon
+                      label: Text('Copy'),
+                      onPressed: () {
+                        // handle button press
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2.0),
+                    child: ElevatedButton.icon(
+                      icon: Icon(
+                          Icons.select_all), // replace with your desired icon
+                      label: Text('Select'),
+                      onPressed: () {
+                        // handle button press
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5.0),
+                    child: ElevatedButton.icon(
+                      icon:
+                          Icon(Icons.delete), // replace with your desired icon
+                      label: Text('Delete'),
+                      onPressed: () {
+                        delete_message();
+                      },
+                    ),
+                  ),
+                ],
               ),
-              child: Transform.rotate(
-                angle: 0,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        color: Colors.blue,
-                      ),
-                      child: RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: formatMessage(widget.message),
-                              style:
-                                  TextStyle(fontSize: 16, color: Colors.white),
-                            ),
-                          ],
+            );
+          },
+        );
+      },
+      child: Container(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: maxWidth * 0.9,
+          ),
+          child: Stack(alignment: Alignment.center, children: [
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 100),
+              left: posX,
+              key: const ValueKey("item 1"),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(3, 0, 5, 0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.blue,
+                ),
+                child: Transform.rotate(
+                  angle: 0,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.blue,
+                        ),
+                        child: RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: formatMessage(widget.message),
+                                style: TextStyle(
+                                    fontSize: 16, color: Colors.white),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                    Column(
-                      children: [
-                        ...List.generate(numberOfLines, (index) => Text('')),
-                        Row(
-                          children: [
-                            (editedStatus == true)
-                                ? Text(
-                                    "edited ",
-                                    style: TextStyle(
-                                        fontSize: 10, color: Colors.grey[350]),
-                                  )
-                                : Text(''),
-                            Text(
-                              widget.timestamp.toDate().hour.toString() +
-                                  ":" +
-                                  widget.timestamp.toDate().minute.toString(),
-                              style: TextStyle(
-                                  fontSize: 10, color: Colors.grey[350]),
-                            ),
-                            Icon(
-                              Icons.check,
-                              size: 10,
-                            )
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
+                      Column(
+                        children: [
+                          ...List.generate(numberOfLines, (index) => Text('')),
+                          Row(
+                            children: [
+                              (editedStatus != widget.timestamp)
+                                  ? Text(
+                                      "edited " +
+                                          editedStatus
+                                              .toDate()
+                                              .hour
+                                              .toString() +
+                                          ":" +
+                                          editedStatus
+                                              .toDate()
+                                              .minute
+                                              .toString(),
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.grey[350]),
+                                    )
+                                  : Text(
+                                      widget.timestamp
+                                              .toDate()
+                                              .hour
+                                              .toString() +
+                                          ":" +
+                                          widget.timestamp
+                                              .toDate()
+                                              .minute
+                                              .toString(),
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.grey[350]),
+                                    ),
+                              Icon(
+                                Icons.check,
+                                size: 10,
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          Positioned(
-            child: Container(
-              height: textHeight.toDouble(),
-              width: textWidth + 70 + (editedStatus ? 30 : 0),
-              child: GestureDetector(
-                onPanStart: (details) {
-                  setState(() {
-                    startPosX = details.localPosition.dx;
-                  });
-                },
-                onPanUpdate: (details) {
-                  setState(() {
-                    double dragDistance = details.localPosition.dx - startPosX;
-                    posX = max(-30.0, min(dragDistance, 30.0));
-                  });
+            Positioned(
+              child: Container(
+                height: textHeight.toDouble(),
+                width: (textWidth) +
+                    70 +
+                    (editedStatus != widget.timestamp ? 20 : 0),
+                child: GestureDetector(
+                  onPanStart: (details) {
+                    setState(() {
+                      startPosX = details.localPosition.dx;
+                    });
+                  },
+                  onPanUpdate: (details) {
+                    setState(() {
+                      double dragDistance =
+                          details.localPosition.dx - startPosX;
+                      posX = max(-30.0, min(dragDistance, 30.0));
+                    });
 
-                  if (posX / 30.0 >= 1.0) {
-                    being_replyed = true;
-                    print('REPLYING');
-                  } else if (posX / -.0 > 1.0) {
-                    print('FORWARDING');
-                  }
-                },
-                onPanEnd: (details) {
-                  setState(() {
-                    posX = 0.0;
-                  });
-                },
+                    if (posX / 30.0 >= 1.0) {
+                      being_replyed = true;
+                      print('REPLYING');
+                      print(textWidth);
+                    } else if (posX / -.0 > 1.0) {
+                      print('FORWARDING');
+                    }
+                  },
+                  onPanEnd: (details) {
+                    setState(() {
+                      posX = 0.0;
+                    });
+                  },
+                ),
               ),
-            ),
-          )
-        ]),
+            )
+          ]),
+        ),
       ),
     );
   }
@@ -189,13 +344,58 @@ class _ChatBubbleState extends State<ChatBubble> {
 
     return formattedMessage.toString();
   }
+
+  void delete_message() async {
+    await _chatService.delete_message(widget.chatRoomId, widget.id);
+  }
+
+  void editMessage(
+    BuildContext context,
+  ) async {
+    TextEditingController _controller =
+        TextEditingController(text: widget.message);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Edit Message'),
+          content: TextField(
+            controller: _controller,
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Save'),
+              onPressed: () async {
+                // Update the message in your state
+                setState(() {
+                  widget.message = _controller.text;
+                });
+
+                // Update the message in your database
+                // This will depend on how you're storing your messages
+                // For example, if you're using Firestore:
+                // FirebaseFirestore.instance
+                //     .collection('messages')
+                //     .doc(widget.messageId) // replace with your message ID
+                //     .update({'message': _controller.text});
+
+                await _chatService.editMessage(
+                    widget.chatRoomId, widget.id, widget.message);
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+                setState(() {});
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
-//  GestureDetector(
-//       onHorizontalDragEnd: (details) {
-//         int sensitivity = 8;
-//         if (details.primaryVelocity! < sensitivity) {
-//           //TODO FORWARD FUNCTION;
-//           print('object');
-//         }
-//       },
-      

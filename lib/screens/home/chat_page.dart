@@ -22,6 +22,7 @@ class _ChatPageState extends State<ChatPage> {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
   ScrollController _scrollController = ScrollController();
+  String currentChatRoomId = '';
 
   // bool _isAtBottom = true;
   // @override
@@ -53,6 +54,9 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    List<String> ids = [widget.reciverUserId, _firebaseAuth.currentUser!.uid];
+    ids.sort();
+    currentChatRoomId = ids.join('_');
     return Scaffold(
       backgroundColor: Color.fromRGBO(147, 196, 209, 100),
       appBar: AppBar(
@@ -104,15 +108,6 @@ class _ChatPageState extends State<ChatPage> {
       await _chatService.sendMessage(
           widget.reciverUserId, _messageController.text);
       _messageController.clear();
-      if (isAtBottom) {
-        print('object');
-        print(isAtBottom);
-        print(isAtBottom);
-        print(isAtBottom);
-        print(isAtBottom);
-        print(isAtBottom);
-        _scrollToBottom(); // scroll to bottom after sending a message
-      }
     }
   }
 
@@ -168,12 +163,15 @@ class _ChatPageState extends State<ChatPage> {
             children: [
               Text(isCurrentUser ? 'You' : widget.reciverUsername),
               ChatBubble(
+                editedStatus: data['editedStatus'],
+                chatRoomId: currentChatRoomId,
                 message: data['text'],
                 timestamp: data["timestamp"],
                 readStatus: false,
                 messageType: 'default',
                 forwarded: false,
                 senderId: data['senderId'],
+                id: document.id,
               )
             ],
           ),

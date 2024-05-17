@@ -7,7 +7,7 @@ class Message {
   Timestamp timestamp;
   bool readStatus;
   String messageType;
-  bool editedStatus = false;
+  Timestamp editedStatus;
   bool forwarded = false;
 
   Message({

@@ -6,7 +6,6 @@ import 'package:myait/models/message.dart';
 class ChatService extends ChangeNotifier {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
-
   Future<void> sendMessage(String receiverId, String message) async {
     final Timestamp timestamp = Timestamp.now();
     //get current user info
@@ -32,6 +31,7 @@ class ChatService extends ChangeNotifier {
     }
     //create a new message
     print(timestamp);
+
     Message newMessage = Message(
         receiverId: receiverId,
         senderId: currentUserId,
@@ -39,7 +39,7 @@ class ChatService extends ChangeNotifier {
         timestamp: timestamp,
         readStatus: false,
         messageType: 'All',
-        editedStatus: false,
+        editedStatus: timestamp,
         forwarded: false);
     //construct chat room id from current user id and reaceiver id
     List<String> ids = [currentUserId, receiverId];
@@ -56,11 +56,37 @@ class ChatService extends ChangeNotifier {
     List<String> ids = [userId, otherUserId];
     ids.sort();
     String chatRoomId = ids.join('_');
+
     return _fireStore
         .collection('chats')
         .doc(chatRoomId)
         .collection('messages')
         .orderBy('timestamp', descending: false)
         .snapshots();
+  }
+
+  editMessage(
+    String chatRoomId,
+    String messageId,
+    String message,
+  ) async {
+    await _fireStore
+        .collection('chats')
+        .doc(chatRoomId)
+        .collection('messages')
+        .doc(messageId)
+        .update({
+      'text': message,
+      'editedStatus': Timestamp.now(),
+    });
+  }
+
+  delete_message(String chatRoomId, String messageId) async {
+    await _fireStore
+        .collection('chats')
+        .doc(chatRoomId)
+        .collection('messages')
+        .doc(messageId)
+        .delete();
   }
 }
