@@ -6,7 +6,7 @@ import 'package:myait/models/message.dart';
 class ChatService extends ChangeNotifier {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
-  Future<void> sendMessage(String receiverId, String message) async {
+  Future<void> sendMessage(String receiverId, String message, replierId) async {
     final Timestamp timestamp = Timestamp.now();
     //get current user info
 
@@ -40,7 +40,8 @@ class ChatService extends ChangeNotifier {
         readStatus: false,
         messageType: 'All',
         editedStatus: timestamp,
-        forwarded: false);
+        forwarded: false,
+        replierId: replierId);
     //construct chat room id from current user id and reaceiver id
     List<String> ids = [currentUserId, receiverId];
     ids.sort();

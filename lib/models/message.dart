@@ -9,6 +9,7 @@ class Message {
   String messageType;
   Timestamp editedStatus;
   bool forwarded = false;
+  String replierId;
 
   Message({
     required this.receiverId,
@@ -19,6 +20,7 @@ class Message {
     required this.messageType,
     required this.editedStatus,
     required this.forwarded,
+    required this.replierId,
   });
 
   Map<String, dynamic> toMap() {
@@ -31,6 +33,7 @@ class Message {
       'messageType': messageType,
       'editedStatus': editedStatus,
       'forwarded': forwarded,
+      'replierId': replierId,
     };
   }
 
@@ -44,6 +47,7 @@ class Message {
       messageType: map['messageType'],
       editedStatus: map['editedStatus'],
       forwarded: map['forwarded'],
+      replierId: map['replierId'],
     );
   }
 }
