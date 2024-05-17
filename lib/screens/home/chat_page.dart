@@ -23,6 +23,34 @@ class _ChatPageState extends State<ChatPage> {
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
   ScrollController _scrollController = ScrollController();
 
+  // bool _isAtBottom = true;
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _scrollController.addListener(_scrollListener);
+  // }
+
+  // void _scrollListener() {
+  //   if (_scrollController.offset >=
+  //           _scrollController.position.maxScrollExtent &&
+  //       !_scrollController.position.outOfRange) {
+  //     setState(() {
+  //       _isAtBottom = true;
+  //     });
+  //   } else {
+  //     setState(() {
+  //       _isAtBottom = false;
+  //       print(_isAtBottom);
+  //     });
+  //   }
+  // }
+
+  // @override
+  // void dispose() {
+  //   _scrollController.removeListener(_scrollListener);
+  //   super.dispose();
+  // }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,17 +59,29 @@ class _ChatPageState extends State<ChatPage> {
         title: Text(widget.reciverUsername),
         backgroundColor: Colors.blue,
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: _buildMessageList(),
+          Column(
+            children: [
+              Expanded(
+                child: _buildMessageList(),
+              ),
+              _buildMessageInput(),
+            ],
           ),
-          _buildMessageInput()
+          // if (!_isAtBottom)
+          //   Positioned(
+          //     bottom: 50, // Adjust this value as needed
+          //     right: 20, // Adjust this value as needed
+          //     child: FloatingActionButton(
+          //       child: Icon(Icons.arrow_downward),
+          //       onPressed: _scrollToBottom,
+          //     ),
+          //   ),
         ],
       ),
     );
   }
-
 //
 //
 //
@@ -57,11 +97,22 @@ class _ChatPageState extends State<ChatPage> {
 //
 
   Future<void> sendMessage() async {
+    bool isAtBottom = _scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent;
     if (_messageController.text.isNotEmpty) {
       print(_messageController);
       await _chatService.sendMessage(
           widget.reciverUserId, _messageController.text);
       _messageController.clear();
+      if (isAtBottom) {
+        print('object');
+        print(isAtBottom);
+        print(isAtBottom);
+        print(isAtBottom);
+        print(isAtBottom);
+        print(isAtBottom);
+        _scrollToBottom(); // scroll to bottom after sending a message
+      }
     }
   }
 
@@ -116,22 +167,14 @@ class _ChatPageState extends State<ChatPage> {
             crossAxisAlignment: crossAlignment,
             children: [
               Text(isCurrentUser ? 'You' : widget.reciverUsername),
-              GestureDetector(
-                onHorizontalDragEnd: (details) {
-                  int sensitivity = 8;
-                  if (details.primaryVelocity! < sensitivity) {
-                    //TODO FORWARD FUNCTION;
-                  }
-                },
-                child: ChatBubble(
-                  message: data['text'],
-                  timestamp: data["timestamp"],
-                  readStatus: false,
-                  messageType: 'default',
-                  forwarded: false,
-                  senderId: data['senderId'],
-                ),
-              ),
+              ChatBubble(
+                message: data['text'],
+                timestamp: data["timestamp"],
+                readStatus: false,
+                messageType: 'default',
+                forwarded: false,
+                senderId: data['senderId'],
+              )
             ],
           ),
           if (isCurrentUser) ...[
