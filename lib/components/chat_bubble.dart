@@ -98,7 +98,7 @@ class _ChatBubbleState extends State<ChatBubble> {
       children: [
         if (widget.replyMessage != '') ...[
           Text(
-            'Reply to: ${widget.replyMessage}',
+            'Reply to: ${widget.replyMessage!.length > 20 ? widget.replyMessage!.substring(0, 18) + '...' : widget.replyMessage}',
             style: TextStyle(
               fontStyle: FontStyle.italic,
               color: Colors.grey,
@@ -175,6 +175,8 @@ class _ChatBubbleState extends State<ChatBubble> {
                               Icons.reply), // replace with your desired icon
                           label: Text('Reply'),
                           onPressed: () {
+                            reply_function();
+                            Navigator.of(context).pop();
                             // handle button press
                           },
                         ),
@@ -410,18 +412,9 @@ class _ChatBubbleState extends State<ChatBubble> {
             TextButton(
               child: Text('Save'),
               onPressed: () async {
-                // Update the message in your state
                 setState(() {
                   widget.message = _controller.text;
                 });
-
-                // Update the message in your database
-                // This will depend on how you're storing your messages
-                // For example, if you're using Firestore:
-                // FirebaseFirestore.instance
-                //     .collection('messages')
-                //     .doc(widget.messageId) // replace with your message ID
-                //     .update({'message': _controller.text});
 
                 await _chatService.editMessage(
                     widget.chatRoomId, widget.id, widget.message);
@@ -436,7 +429,6 @@ class _ChatBubbleState extends State<ChatBubble> {
   }
 
   reply_function() {
-    // ...
     widget.onReply(widget.id, widget.chatRoomId, widget.message);
   }
 }

@@ -1,21 +1,34 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:myait/models/myuser.dart';
-import 'package:myait/screens/wrapper.dart';
-import 'package:provider/provider.dart';
-import 'package:myait/database/userdb.dart';
 
-class EditProfile {
-  final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
+class UserService {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  MyUser currentUser = Wrapper.currentUser;
-  UserDb db = new UserDb();
-  void editName(String name) {
-    if (name.length < 12) {
-      currentUser.updateProfile("username", name);
-    }
+  // Get current user
+  Future<User?> getCurrentUser() async {
+    return _auth.currentUser;
   }
 
-  void editAboutMe(String text) {
-    currentUser.status = text;
+  // Get user data from Firestore
+  Future<DocumentSnapshot> getUserData(String userId) async {
+    return _firestore.collection('users').doc(userId).get();
+  }
+
+  // Update user data
+  Future<void> updateUserData(String userId, Map<String, dynamic> data) async {
+    return _firestore.collection('users').doc(userId).update(data);
+  }
+
+  // Sign out
+  Future<void> signOut() async {
+    return _auth.signOut();
+  }
+
+  uploadUserProfilePicture(String userId, String url) async {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .update({'profilePicture': url});
   }
 }

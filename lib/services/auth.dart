@@ -61,6 +61,10 @@ class AuthService {
           .collection('users')
           .doc(user!.uid)
           .set(uss.toMap(), SetOptions(merge: true));
+      _fireStore.collection('userUsernametoId').doc(email).set({
+        'uid': user.uid,
+        'userName': email,
+      });
       return _userFromFirebaseUser(user!);
     } catch (e) {
       print(e.toString());
@@ -95,6 +99,10 @@ class AuthService {
             .collection('users')
             .doc(gUser!.id)
             .set(uss.toMap(), SetOptions(merge: true));
+        _fireStore.collection('userUsernametoId').doc(gUser!.email).set({
+          'uid': gUser!.id,
+          'userName': gUser!.email,
+        });
       }
       ;
       return await FirebaseAuth.instance.signInWithCredential(credential);

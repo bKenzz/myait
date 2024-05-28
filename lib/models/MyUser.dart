@@ -5,17 +5,21 @@ class MyUser {
   String uid;
   String? username = 'MyAit User';
   String email;
-  String? profilePicture = 'DefaultProfilePicture.png';
+  String? profilePicture =
+      'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';
   String? status = "Hello i use My Ait!";
   DateTime? lastSeen = DateTime.now();
+  List<String>? chats;
 
   MyUser({
     required this.uid,
     required this.email,
     this.username = 'MyAit User',
-    this.profilePicture = 'DefaultProfilePicture.png',
+    this.profilePicture =
+        'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png',
     this.status = "Hello i use My Ait!",
     this.lastSeen,
+    this.chats,
   });
 
   Map<String, dynamic> toMap() {
@@ -26,6 +30,7 @@ class MyUser {
       'profilePicture': profilePicture,
       'status': status,
       'lastSeen': lastSeen?.millisecondsSinceEpoch,
+      'chats': chats,
     };
   }
 
@@ -39,6 +44,7 @@ class MyUser {
       lastSeen: map['lastSeen'] != null
           ? DateTime.fromMillisecondsSinceEpoch(map['lastSeen'])
           : null,
+      chats: List<String>.from(map['chats']),
     );
   }
 

@@ -4,13 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:myait/components/chat_bubble.dart';
 import 'package:myait/components/mytextfield.dart';
+import 'package:myait/screens/home/chat_info_page.dart';
 import 'package:myait/services/chat/chat_service.dart';
 
 class ChatPage extends StatefulWidget {
   final String reciverUserId;
   final String reciverUsername;
 
-  ChatPage(
+  ChatPage(String uid,
       {super.key, required this.reciverUserId, required this.reciverUsername});
 
   @override
@@ -18,6 +19,8 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
+  Map<String, String> _usernames = {};
+  Map<String, String> _pfps = {};
   final TextEditingController _messageController = TextEditingController();
   final ChatService _chatService = ChatService();
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -29,90 +32,70 @@ class _ChatPageState extends State<ChatPage> {
       ValueNotifier<String>('`32=21;`123x21fd');
   final ValueNotifier<String> current_message_id = ValueNotifier<String>('');
 
-  // Add this line to define the replyMessage variable
+  @override
+  void initState() {
+    super.initState();
+    _loadUsernames();
+  }
 
-  // bool _isAtBottom = true;
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _scrollController.addListener(_scrollListener);
-  // }
-
-  // void _scrollListener() {
-  //   if (_scrollController.offset >=
-  //           _scrollController.position.maxScrollExtent &&
-  //       !_scrollController.position.outOfRange) {
-  //     setState(() {
-  //       _isAtBottom = true;
-  //     });
-  //   } else {
-  //     setState(() {
-  //       _isAtBottom = false;
-  //       print(_isAtBottom);
-  //     });
-  //   }
-  // }
-
-  // @override
-  // void dispose() {
-  //   _scrollController.removeListener(_scrollListener);
-  //   super.dispose();
-  // }
+  Future<void> _loadUsernames() async {
+    QuerySnapshot usersSnapshot = await _firestore.collection('users').get();
+    for (var doc in usersSnapshot.docs) {
+      _usernames[doc.id] = (doc.data() as Map<String, dynamic>)['username'];
+      _pfps[doc.id] = (doc.data() as Map<String, dynamic>)['profilePicture'];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    List<String> ids = [widget.reciverUserId, _firebaseAuth.currentUser!.uid];
-    ids.sort();
-    currentChatRoomId = ids.join('_');
-    return Scaffold(
-      backgroundColor: Color.fromRGBO(147, 196, 209, 100),
-      appBar: AppBar(
-        title: Text(widget.reciverUsername),
-        backgroundColor: Colors.blue,
-      ),
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              Expanded(
-                child: _buildMessageList(),
+    currentChatRoomId = widget.reciverUserId;
+    return FutureBuilder(
+      future: _loadUsernames(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator(); // Show a loading spinner while waiting
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else {
+          return Scaffold(
+            backgroundColor: Color.fromRGBO(147, 196, 209, 100),
+            appBar: AppBar(
+              title: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            ChatInfoPage(chatId: currentChatRoomId)),
+                  );
+                },
+                child: Text(widget.reciverUsername),
               ),
-              _buildMessageInput(),
-            ],
-          ),
-          // if (!_isAtBottom)
-          //   Positioned(
-          //     bottom: 50, // Adjust this value as needed
-          //     right: 20, // Adjust this value as needed
-          //     child: FloatingActionButton(
-          //       child: Icon(Icons.arrow_downward),
-          //       onPressed: _scrollToBottom,
-          //     ),
-          //   ),
-        ],
-      ),
+              backgroundColor: Colors.blue,
+            ),
+            body: Stack(
+              children: [
+                Column(
+                  children: [
+                    Expanded(
+                      child: _buildMessageList(),
+                    ),
+                    _buildMessageInput(),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }
+      },
     );
   }
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
 
   Future<void> sendMessage() async {
-    _scrollToBottom();
+    // _scrollToBottom();
     bool isAtBottom = _scrollController.position.pixels ==
         _scrollController.position.maxScrollExtent;
     if (_messageController.text.isNotEmpty) {
-      print(_messageController);
       await _chatService.sendMessage(
           widget.reciverUserId,
           _messageController.text,
@@ -128,7 +111,10 @@ class _ChatPageState extends State<ChatPage> {
   Widget _buildMessageList() {
     return StreamBuilder(
         stream: _chatService.getMessages(
-            widget.reciverUserId, _firebaseAuth.currentUser!.uid),
+          //HERHEHREHRERERERERE
+          _firebaseAuth.currentUser!.uid,
+          widget.reciverUserId,
+        ),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Text('Error${snapshot.error}');
@@ -152,18 +138,25 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   // build message item
+
   Widget _buildMessageItem(DocumentSnapshot document) {
     Map<String, dynamic> data = document.data() as Map<String, dynamic>;
 
     bool isCurrentUser = data['senderId'] == _firebaseAuth.currentUser!.uid;
     String profileImageUrl = isCurrentUser
-        ? 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'
-        : 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';
+        ? _pfps[data['senderId']] ??
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKKOdmJz8Z2pDtYgFgR2u9spABvNNPKYYtGw&s'
+        : _pfps[data['senderId']] ??
+            'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';
 
+//hererererere profilePicture
     // Set a cross alignment that matches the message bubble alignment.
     CrossAxisAlignment crossAlignment =
         isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start;
-    _scrollToBottom();
+
+    String username = _usernames[data['senderId']] ?? 'Unknown user';
+
+    // _scrollToBottom();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       child: Row(
@@ -180,7 +173,7 @@ class _ChatPageState extends State<ChatPage> {
           Column(
             crossAxisAlignment: crossAlignment,
             children: [
-              Text(isCurrentUser ? 'You' : widget.reciverUsername),
+              Text(isCurrentUser ? 'You' : username),
               ChatBubble(
                   onReply: onReply,
                   editedStatus: data['editedStatus'],
@@ -219,31 +212,31 @@ class _ChatPageState extends State<ChatPage> {
             valueListenable: replyMessage,
             builder: (BuildContext context, String value, Widget? child) {
               return value != '`32=21;`123x21fd'
-                  ? Container(
-                      padding: EdgeInsets.all(8.0),
-                      color: Colors.grey[200], // Change this as needed
-                      child: Text(
-                        value, // This will display the reply message
-                        style: TextStyle(
-                            color: Colors.black), // Change this as needed
-                      ),
+                  ? Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: EdgeInsets.all(8.0),
+                            color: Colors.grey[200], // Change this as needed
+                            child: Text(
+                              value, // This will display the reply message
+                              style: TextStyle(
+                                  color: Colors.black), // Change this as needed
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.cancel),
+                          onPressed: () {
+                            replyMessage.value =
+                                '`32=21;`123x21fd'; // Clear the replyMessage
+                          },
+                        ),
+                      ],
                     )
                   : Container();
             },
           ),
-          // Add this Container for the reply message
-          replyMessage.value != '`32=21;`123x21fd'
-              ? Container(
-                  padding: EdgeInsets.all(8.0),
-                  color: Colors.grey[200], // Change this as needed
-                  child: Text(
-                    replyMessage
-                        .value, // Replace this with the actual reply message
-                    style:
-                        TextStyle(color: Colors.black), // Change this as needed
-                  ),
-                )
-              : Container(),
           Row(
             children: [
               Expanded(

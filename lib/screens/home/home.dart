@@ -22,31 +22,10 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final EditProfile currentUserFunctions = new EditProfile();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Color.fromRGBO(147, 196, 209, 100),
-        appBar: AppBar(
-          title: Text('AIT Schedule'),
-          backgroundColor: Color.fromRGBO(45, 95, 110, 100),
-          elevation: 0.0,
-          actions: <Widget>[
-            TextButton.icon(
-              onPressed: () async {
-                await _auth.signOut();
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.black,
-              ),
-              icon: Icon(
-                Icons.person,
-              ),
-              label: const Text('logout'),
-            ),
-          ],
-        ),
         body: _buildUserList());
   }
 
@@ -54,7 +33,11 @@ class _HomeState extends State<Home> {
 
   Widget _buildUserList() {
     return StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('users').snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(_auth.currentUser!.uid)
+            .collection('chats')
+            .snapshots(),
         builder: ((context, snapshot) {
           if (snapshot.hasError) {
             return const Text('Error');
@@ -70,22 +53,40 @@ class _HomeState extends State<Home> {
   }
 
   Widget _buildUserListItem(DocumentSnapshot document) {
-    Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+    String chatId = document.id;
 
-    if (_auth.currentUser!.email != data['email']) {
-      return ListTile(
-        title: Text(data['username']),
-        onTap: () {
-          Navigator.push(
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection('chats').doc(chatId).get(),
+      builder:
+          (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+        if (snapshot.hasError) {
+          return Text('Something went wrong');
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Text("Loading");
+        }
+
+        Map<String, dynamic> chatData =
+            snapshot.data!.data()! as Map<String, dynamic>;
+        // Use 'chatData' to build your widget
+        // For example:
+        return ListTile(
+          title: Text(chatData['chatName']),
+          onTap: () {
+            Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => ChatPage(
-                      reciverUserId: data['uid'],
-                      reciverUsername: data['username'])));
-        },
-      );
-    } else {
-      return Container();
-    }
+                builder: (context) => ChatPage(
+                  _auth.currentUser!.uid,
+                  reciverUserId: chatId,
+                  reciverUsername: chatData['chatName'],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 }
