@@ -11,13 +11,18 @@ class UserService {
   }
 
   // Get user data from Firestore
-  Future<DocumentSnapshot> getUserData(String userId) async {
+  Future<DocumentSnapshot> getUserDatafromUsername(String userId) async {
     return _firestore.collection('users').doc(userId).get();
+  }
+
+  Future<DocumentSnapshot> getUserDatafromId(String userId) async {
+    var newuserId = await userUsernametoId(userId);
+    return _firestore.collection('users').doc(newuserId).get();
   }
 
   // Update user data
   Future<void> updateUserData(String userId, Map<String, dynamic> data) async {
-    return _firestore.collection('users').doc(userId).update(data);
+    _firestore.collection('users').doc(userId).update(data);
   }
 
   // Sign out
@@ -30,5 +35,14 @@ class UserService {
         .collection('users')
         .doc(userId)
         .update({'profilePicture': url});
+  }
+
+  userUsernametoId(String username) async {
+    var result = await _firestore;
+    var snapshot =
+        await _firestore.collection('userUsernametoId').doc(username).get();
+    var userName = snapshot.data()?['uid'];
+
+    return userName;
   }
 }

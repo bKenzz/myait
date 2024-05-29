@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:myait/screens/home/home.dart';
 import 'package:myait/services/chat/chat_service.dart';
+import 'package:myait/screens/home/main_navigation.dart';
 
 class GroupChatsPage extends StatefulWidget {
   const GroupChatsPage({Key? key}) : super(key: key);
@@ -78,12 +80,15 @@ class _GroupChatsPageState extends State<GroupChatsPage> {
               },
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 if (_formKey.currentState!.validate()) {
                   _formKey.currentState!.save();
                   // Now you can use _chatName, _chatImageUrl, _users, and _chatDescription to create a new chat
                   // ...
-                  createChat();
+                  await createChat();
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => MainNavigation()),
+                  );
                 }
               },
               child: Text('Create Chat'),
@@ -94,12 +99,13 @@ class _GroupChatsPageState extends State<GroupChatsPage> {
     );
   }
 
-  void createChat() {
+  createChat() async {
     try {
       print('object');
       String chatType = _users.length == 1 ? 'dm' : 'group';
-      _chatService.create_Chatroom(_auth.currentUser!.uid, _users, chatType,
-          _chatName, _chatDescription);
+
+      await _chatService.create_Chatroom(_auth.currentUser!.uid, _users,
+          chatType, _chatName, _chatDescription);
     } catch (e) {
       print('Failed to create chat: $e');
       ScaffoldMessenger.of(context).showSnackBar(

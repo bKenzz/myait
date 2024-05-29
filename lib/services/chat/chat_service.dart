@@ -7,11 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:myait/models/message.dart';
 import 'package:myait/models/mychat.dart';
+import 'package:myait/services/editprofile.dart';
 import 'package:uuid/uuid.dart';
 
 class ChatService extends ChangeNotifier {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
+  UserService _userService = UserService();
 
   Future<void> sendMessage(String receiverId, String message, replierId) async {
     final Timestamp timestamp = Timestamp.now();
@@ -166,5 +168,48 @@ class ChatService extends ChangeNotifier {
       print(e);
     }
     throw Exception('Failed to upload image');
+  }
+
+  add_participant(String participant, String chatRoomId) async {
+    String? userId = await _userService.userUsernametoId(participant);
+    await _fireStore.collection('users').doc(userId).update({
+      'chats': FieldValue.arrayUnion([chatRoomId]),
+    });
+    await _fireStore
+        .collection('users')
+        .doc(userId)
+        .collection('chats')
+        .doc(chatRoomId)
+        .set({'chatRoomId': chatRoomId});
+    await _fireStore.collection('chats').doc(chatRoomId).update({
+      'participants': FieldValue.arrayUnion([participant])
+    });
+  }
+
+  add_admin(String participant, String chatRoomId) async {
+    String? userId = await _userService.userUsernametoId(participant);
+
+    await _fireStore.collection('chats').doc(chatRoomId).update({
+      'admins': FieldValue.arrayUnion([participant])
+    });
+    print(participant);
+  }
+
+  change_chat_name(
+    String chatName,
+    String chatRoomId,
+  ) async {
+    await _fireStore.collection('chats').doc(chatRoomId).update({
+      'chatName': chatName,
+    });
+  }
+
+  change_chat_discription(
+    String chatDiscription,
+    String chatRoomId,
+  ) async {
+    await _fireStore.collection('chats').doc(chatRoomId).update({
+      'chatdiscription': chatDiscription,
+    });
   }
 }
