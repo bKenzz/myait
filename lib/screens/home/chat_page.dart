@@ -30,6 +30,7 @@ class _ChatPageState extends State<ChatPage> {
   ValueNotifier<String> replyMessage =
       ValueNotifier<String>('`32=21;`123x21fd');
   final ValueNotifier<String> current_message_id = ValueNotifier<String>('');
+  dynamic userToProfilePicture = {};
 
   @override
   void initState() {
@@ -42,6 +43,9 @@ class _ChatPageState extends State<ChatPage> {
     for (var doc in usersSnapshot.docs) {
       _usernames[doc.id] = (doc.data() as Map<String, dynamic>)['username'];
       _pfps[doc.id] = (doc.data() as Map<String, dynamic>)['profilePicture'];
+      print('-------------');
+      print(_pfps);
+      print('-------------');
     }
   }
 
@@ -107,6 +111,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   // build message list
+
   Widget _buildMessageList() {
     return StreamBuilder(
         stream: _chatService.getMessages(
@@ -164,7 +169,7 @@ class _ChatPageState extends State<ChatPage> {
         children: [
           if (!isCurrentUser) ...[
             CircleAvatar(
-              backgroundImage: NetworkImage(profileImageUrl),
+              backgroundImage: AssetImage('assets/' + profileImageUrl),
               radius: 20,
             ),
             SizedBox(width: 8),
@@ -192,7 +197,7 @@ class _ChatPageState extends State<ChatPage> {
           if (isCurrentUser) ...[
             SizedBox(width: 8),
             CircleAvatar(
-              backgroundImage: NetworkImage(profileImageUrl),
+              backgroundImage: AssetImage('assets/' + profileImageUrl),
               radius: 20,
             ),
           ],
@@ -289,5 +294,11 @@ class _ChatPageState extends State<ChatPage> {
   void onReply(String id, String chatRoomId, String message) {
     replyMessage.value = message;
     current_message_id.value = id;
+  }
+
+  createCurrentProfilePictures() {
+    for (var user in _usernames.keys) {
+      userToProfilePicture[user] = _pfps[user];
+    }
   }
 }

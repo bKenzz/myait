@@ -44,7 +44,9 @@ class _MyProfileState extends State<MyProfile> {
       currentUser = user;
       userData =
           await _fireStore.collection('users').doc(currentUser.uid).get();
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     }
   }
 
@@ -234,9 +236,11 @@ class _MyProfileState extends State<MyProfile> {
       final picker = ImagePicker();
       final result = await picker.pickImage(source: ImageSource.gallery);
       if (result == null) return;
-      setState(() {
-        pickedFile = File(result.path);
-      });
+      if (mounted) {
+        setState(() {
+          pickedFile = File(result.path);
+        });
+      }
     } catch (e) {
       print('Error in selectFile: $e');
     }

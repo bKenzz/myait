@@ -14,6 +14,7 @@ class ChatInfoPage extends StatefulWidget {
 }
 
 class _ChatInfoPageState extends State<ChatInfoPage> {
+  FirebaseAuth _auth = FirebaseAuth.instance;
   Map<String, dynamic>? data;
   bool isLoading = true;
   UserService _userService = UserService();
@@ -24,6 +25,7 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   late String currentUserId;
   late Future<void> chatInfoFuture;
   ChatService _chatService = ChatService();
+  late String profile;
   @override
   void initState() {
     super.initState();
@@ -47,31 +49,35 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
       data = chatInfo.data() as Map<String, dynamic>;
       isLoading = false;
     });
-
-    User? currentUser = await _userService.getCurrentUser();
-
     if (data!['participants'] != null) {
-      List<String> participantNames = [];
-      for (String userId in data!['participants']) {
-        String name = await getUserInfo(userId, 'username');
-        participantNames.add(name);
-      }
+      // existing code...
+      profile = await getUsersProfile(data!['chatRoomId'], 'profilePicture');
 
-      setState(() {
-        data!['participantNames'] = participantNames;
-      });
-    }
-    if (data!['admins'] != null) {
-      List<String> adminNames = [];
-      for (String userId in data!['admins']) {
-        String name = await getUserInfo(userId, 'username');
-        adminNames.add(name);
+      User? currentUser = await _userService.getCurrentUser();
+
+      if (data!['participants'] != null) {
+        List<String> participantNames = [];
+        for (String userId in data!['participants']) {
+          String name = await getUserInfo(userId, 'username');
+          participantNames.add(name);
+        }
+
+        setState(() {
+          data!['participantNames'] = participantNames;
+        });
       }
-      setState(() {
-        data!['adminNames'] = adminNames;
-        currentUserId = currentUser!.email!;
-        print(currentUserId);
-      });
+      if (data!['admins'] != null) {
+        List<String> adminNames = [];
+        for (String userId in data!['admins']) {
+          String name = await getUserInfo(userId, 'username');
+          adminNames.add(name);
+        }
+        setState(() {
+          data!['adminNames'] = adminNames;
+          currentUserId = currentUser!.email!;
+          print(currentUserId);
+        });
+      }
     }
   }
 
@@ -102,9 +108,13 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
                   SizedBox(height: 10),
                   Center(
                       child: CircleAvatar(
-                          radius: 50,
-                          backgroundImage: NetworkImage(
-                              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQEEVrqp9eqAoNmzS0s8gjVGDxMBfBer68E_g&s'))),
+                    radius: 50,
+                    backgroundImage: AssetImage(data!['chatType'] == 'group'
+                        ? 'assets/' + data!['groupPicture']
+                        : data!['participants'][0] == currentUserId
+                            ? 'assets/' + profile
+                            : 'assets/' + profile),
+                  )),
                   SizedBox(height: 10),
                   isAdmin
                       ? GestureDetector(
@@ -309,5 +319,28 @@ class _ChatInfoPageState extends State<ChatInfoPage> {
   void changeChatDiscription() {
     _chatService.change_chat_discription(
         descriptionController.text, data!['chatRoomId']);
+  }
+
+  Future<String> getUsersProfile(String chatId, String what) async {
+    UserService _userService = UserService();
+
+    var currentUser = _auth.currentUser?.email;
+    final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
+    var participants;
+    var otherPerson;
+    var otherPersonId;
+    var chatDocument = await _fireStore.collection('chats').doc(chatId).get();
+    participants = chatDocument['participants'];
+
+    if (participants[0] == currentUser) {
+      otherPerson = participants[1];
+    } else {
+      otherPerson = participants[0];
+    }
+    otherPersonId = await _userService.userUsernametoId(otherPerson);
+    var userDocument =
+        await _fireStore.collection('users').doc(otherPersonId).get();
+    var b = userDocument[what];
+    return userDocument[what];
   }
 }

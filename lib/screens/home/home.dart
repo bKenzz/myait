@@ -101,7 +101,7 @@ class _HomeState extends State<Home> {
                     }
                   },
                 ),
-          title: chatData['chatType'] == 'group'
+          title: chatData['chatType'] == 'dm'
               ? FutureBuilder<String>(
                   future: getUsersProfile(chatData['chatRoomId'], 'username'),
                   builder:
@@ -121,7 +121,9 @@ class _HomeState extends State<Home> {
             children: [
               Expanded(
                 child: Text(
-                  chatData['lastMessage'],
+                  chatData['lastMessageSender'] +
+                      ': ' +
+                      chatData['lastMessage'],
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

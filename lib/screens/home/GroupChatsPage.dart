@@ -17,7 +17,6 @@ class _GroupChatsPageState extends State<GroupChatsPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final _formKey = GlobalKey<FormState>();
   String _chatName = '';
-  String _chatImageUrl = '';
   String _chatDescription = '';
   List<String> _users = [];
   ChatService _chatService = ChatService();
@@ -41,18 +40,6 @@ class _GroupChatsPageState extends State<GroupChatsPage> {
               },
               onSaved: (value) {
                 _chatName = value!;
-              },
-            ),
-            TextFormField(
-              decoration: InputDecoration(labelText: 'Chat Image URL'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a chat image URL';
-                }
-                return null;
-              },
-              onSaved: (value) {
-                _chatImageUrl = value!;
               },
             ),
             TextFormField(

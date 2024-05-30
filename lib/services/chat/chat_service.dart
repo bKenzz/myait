@@ -63,6 +63,7 @@ class ChatService extends ChangeNotifier {
     await _fireStore.collection('chats').doc(chatRoomId).update({
       'lastMessage': message,
       'lastMessageTime': timestamp,
+      'lastMessageSender': currentUserName,
     });
     DocumentSnapshot chatDocument =
         await _fireStore.collection('chats').doc(chatRoomId).get();
@@ -147,7 +148,7 @@ class ChatService extends ChangeNotifier {
       if (chatType == 'group') {
         groupPicture = groupImages[Random().nextInt(groupImages.length)];
       } else {
-        groupPicture = dmImages[Random().nextInt(dmImages.length)];
+        groupPicture = groupImages[Random().nextInt(groupImages.length)];
       }
 
       Chat chat = Chat(
@@ -156,6 +157,7 @@ class ChatService extends ChangeNotifier {
           participants: [currentEmail, ...otherUserIds],
           lastMessageTime: Timestamp.now(),
           lastMessage: '',
+          lastMessageSender: '',
           chatType: chatType,
           admins: [currentEmail],
           chatName: chatName,
@@ -243,6 +245,20 @@ class ChatService extends ChangeNotifier {
     await _fireStore.collection('users').doc(userId).update({
       'chats': FieldValue.arrayUnion([chatRoomId]),
     });
+
+    await _fireStore
+        .collection('users')
+        .doc(userId)
+        .collection('chats')
+        .doc(chatRoomId)
+        .set({
+      'chatRoomId': chatRoomId,
+    });
+
+    await _fireStore.collection('chats').doc(chatRoomId).update({
+      'chatType': 'group',
+      'participants': FieldValue.arrayUnion([participant])
+    });
   }
 
   add_admin(String participant, String chatRoomId) async {
@@ -251,7 +267,6 @@ class ChatService extends ChangeNotifier {
     await _fireStore.collection('chats').doc(chatRoomId).update({
       'admins': FieldValue.arrayUnion([participant])
     });
-    print(participant);
   }
 
   change_chat_name(
@@ -270,5 +285,28 @@ class ChatService extends ChangeNotifier {
     await _fireStore.collection('chats').doc(chatRoomId).update({
       'chatdiscription': chatDiscription,
     });
+  }
+
+  Future<String> getUsersProfile(String chatId, String what) async {
+    UserService _userService = UserService();
+
+    var currentUser = _firebaseAuth.currentUser?.email;
+    final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
+    var participants;
+    var otherPerson;
+    var otherPersonId;
+    var chatDocument = await _fireStore.collection('chats').doc(chatId).get();
+    participants = chatDocument['participants'];
+
+    if (participants[0] == currentUser) {
+      otherPerson = participants[1];
+    } else {
+      otherPerson = participants[0];
+    }
+    otherPersonId = await _userService.userUsernametoId(otherPerson);
+    var userDocument =
+        await _fireStore.collection('users').doc(otherPersonId).get();
+    var b = userDocument[what];
+    return userDocument[what];
   }
 }
