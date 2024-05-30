@@ -78,9 +78,8 @@ class _MyProfileState extends State<MyProfile> {
                 child: CircleAvatar(
                   radius: 40.0,
                   backgroundImage: userData != null
-                      ? NetworkImage(userData!['profilePicture'])
-                      : NetworkImage(
-                          'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'),
+                      ? AssetImage('assets/' + userData!['profilePicture'])
+                      : AssetImage('assets/images/default_profile_picture.jpg'),
                 ),
               )),
               Divider(

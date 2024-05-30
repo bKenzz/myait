@@ -5,18 +5,16 @@ class MyUser {
   String uid;
   String? username = 'MyAit User';
   String email;
-  String? profilePicture =
-      'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png';
+  String? profilePicture;
   String? status = "Hello i use My Ait!";
-  DateTime? lastSeen = DateTime.now();
+  Timestamp? lastSeen = Timestamp.now();
   List<String>? chats;
 
   MyUser({
     required this.uid,
     required this.email,
     this.username = 'MyAit User',
-    this.profilePicture =
-        'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png',
+    this.profilePicture,
     this.status = "Hello i use My Ait!",
     this.lastSeen,
     this.chats,
@@ -41,9 +39,7 @@ class MyUser {
       username: map['username'],
       profilePicture: map['profilePicture'],
       status: map['status'],
-      lastSeen: map['lastSeen'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(map['lastSeen'])
-          : null,
+      lastSeen: map['lastSeen'] != null ? Timestamp.now() : null,
       chats: List<String>.from(map['chats']),
     );
   }

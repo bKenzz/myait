@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myait/screens/home/home.dart';
 import 'package:myait/services/chat/chat_service.dart';
 import 'package:myait/screens/home/main_navigation.dart';
+import 'package:myait/services/editprofile.dart';
 
 class GroupChatsPage extends StatefulWidget {
   const GroupChatsPage({Key? key}) : super(key: key);
@@ -21,7 +22,7 @@ class _GroupChatsPageState extends State<GroupChatsPage> {
   List<String> _users = [];
   ChatService _chatService = ChatService();
   final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
-
+  UserService _userService = UserService();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,7 +57,7 @@ class _GroupChatsPageState extends State<GroupChatsPage> {
             ),
             TextFormField(
               decoration: InputDecoration(
-                  labelText: 'Users (usernames separated by commas)'),
+                  labelText: 'Users (usernames separated by spaces)'),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Please enter at least one user';
@@ -64,7 +65,8 @@ class _GroupChatsPageState extends State<GroupChatsPage> {
                 return null;
               },
               onSaved: (value) {
-                _users = value!.split(',');
+                _users =
+                    value!.split(' ').where((user) => user.isNotEmpty).toList();
               },
             ),
             TextFormField(
@@ -99,10 +101,22 @@ class _GroupChatsPageState extends State<GroupChatsPage> {
     );
   }
 
-  createChat() async {
+  Future<void> createChat() async {
     try {
       print('object');
       String chatType = _users.length == 1 ? 'dm' : 'group';
+
+      // Check if users exist in Firebase
+      for (String user in _users) {
+        String userId = await _userService.userUsernametoId(user);
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .get();
+        if (!userDoc.exists) {
+          throw Exception('User $user does not exist');
+        }
+      }
 
       await _chatService.create_Chatroom(_auth.currentUser!.uid, _users,
           chatType, _chatName, _chatDescription);

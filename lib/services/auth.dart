@@ -1,5 +1,7 @@
 // ignore_for_file: prefer_const_constructors, unused_import, unnecessary_null_comparison
 
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -56,7 +58,11 @@ class AuthService {
       UserCredential result = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
       User? user = result.user;
-      MyUser uss = new MyUser(uid: user!.uid, email: user.email!);
+      MyUser uss = new MyUser(
+          uid: user!.uid,
+          email: user.email!,
+          username: email,
+          profilePicture: randomImage());
       _fireStore
           .collection('users')
           .doc(user!.uid)
@@ -107,5 +113,19 @@ class AuthService {
       ;
       return await FirebaseAuth.instance.signInWithCredential(credential);
     } catch (e) {}
+  }
+
+  String randomImage() {
+    List<String> dmImages = [
+      'dm/download.jpg',
+      'dm/gato(1).jpg',
+      'dm/gato2.jpg',
+      'dm/girl.jpg',
+      'dm/girl(1).jpg',
+      'dm/girl(2).jpg',
+      'dm/images.jpg',
+      'dm/man(1).jpg',
+    ];
+    return dmImages[Random().nextInt(dmImages.length)];
   }
 }

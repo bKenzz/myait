@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -59,6 +60,23 @@ class ChatService extends ChangeNotifier {
         .doc(chatRoomId)
         .collection('messages')
         .add(newMessage.toMap());
+    await _fireStore.collection('chats').doc(chatRoomId).update({
+      'lastMessage': message,
+      'lastMessageTime': timestamp,
+    });
+    DocumentSnapshot chatDocument =
+        await _fireStore.collection('chats').doc(chatRoomId).get();
+    List<String> participants = List<String>.from(chatDocument['participants']);
+
+    for (var participant in participants) {
+      String participantId = await _userService.userUsernametoId(participant);
+      await _fireStore
+          .collection('users')
+          .doc(participantId)
+          .collection('chats')
+          .doc(chatRoomId)
+          .set({'lastMessageTime': timestamp}, SetOptions(merge: true));
+    }
   }
 
   Stream<QuerySnapshot> getMessages(String userId, String receiverId) {
@@ -104,9 +122,40 @@ class ChatService extends ChangeNotifier {
       String currentEmail = await getUsernameFromUserId(userId, 'email');
       String chatRoomId = uuid.v4();
 
+      // Define the lists of images.
+      List<String> dmImages = [
+        'dm/download.jpg',
+        'dm/gato(1).jpg',
+        'dm/gato2.jpg',
+        'dm/girl.jpg',
+        'dm/girl(1).jpg',
+        'dm/girl(2).jpg',
+        'dm/images.jpg',
+        'dm/man(1).jpg',
+      ];
+      List<String> groupImages = [
+        'group/images (1).jpg',
+        'group/images (2).jpg',
+        'group/images (3).jpg',
+        'group/images (4).jpg',
+        'group/download (1).jpg',
+        'group/images.jpg', /* add more images as needed */
+      ];
+
+      // Select a random image based on the chat type.
+      String groupPicture;
+      if (chatType == 'group') {
+        groupPicture = groupImages[Random().nextInt(groupImages.length)];
+      } else {
+        groupPicture = dmImages[Random().nextInt(dmImages.length)];
+      }
+
       Chat chat = Chat(
           chatRoomId: chatRoomId,
+          groupPicture: groupPicture,
           participants: [currentEmail, ...otherUserIds],
+          lastMessageTime: Timestamp.now(),
+          lastMessage: '',
           chatType: chatType,
           admins: [currentEmail],
           chatName: chatName,
@@ -127,6 +176,11 @@ class ChatService extends ChangeNotifier {
             .collection('userUsernametoId')
             .doc(otherUserId)
             .get();
+
+        if (!documentSnapshot.exists) {
+          throw Exception('User $otherUserId does not exist');
+        }
+
         Map<String, dynamic> data =
             documentSnapshot.data() as Map<String, dynamic>;
         String uid = data['uid'];
@@ -141,6 +195,20 @@ class ChatService extends ChangeNotifier {
             .collection('chats')
             .doc(chatRoomId)
             .set({'chatRoomId': chatRoomId});
+      }
+      DocumentSnapshot chatDocument =
+          await _fireStore.collection('chats').doc(chatRoomId).get();
+      List<String> participants =
+          List<String>.from(chatDocument['participants']);
+
+      for (var participant in participants) {
+        String participantId = await _userService.userUsernametoId(participant);
+        await _fireStore
+            .collection('users')
+            .doc(participantId)
+            .collection('chats')
+            .doc(chatRoomId)
+            .set({'lastMessageTime': Timestamp.now()}, SetOptions(merge: true));
       }
     } catch (e) {
       print('Failed to create chat room: $e');
@@ -174,15 +242,6 @@ class ChatService extends ChangeNotifier {
     String? userId = await _userService.userUsernametoId(participant);
     await _fireStore.collection('users').doc(userId).update({
       'chats': FieldValue.arrayUnion([chatRoomId]),
-    });
-    await _fireStore
-        .collection('users')
-        .doc(userId)
-        .collection('chats')
-        .doc(chatRoomId)
-        .set({'chatRoomId': chatRoomId});
-    await _fireStore.collection('chats').doc(chatRoomId).update({
-      'participants': FieldValue.arrayUnion([participant])
     });
   }
 

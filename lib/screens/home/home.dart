@@ -12,6 +12,7 @@ import 'package:myait/screens/home/chat_page.dart';
 import 'package:myait/screens/wrapper.dart';
 import 'package:myait/services/auth.dart';
 import 'package:myait/services/editprofile.dart';
+import 'package:intl/intl.dart';
 
 class Home extends StatefulWidget {
   Home({super.key});
@@ -29,6 +30,11 @@ class _HomeState extends State<Home> {
         body: _buildUserList());
   }
 
+  @override
+  void initState() {
+    super.initState();
+  }
+
 //build a list of users
 
   Widget _buildUserList() {
@@ -37,6 +43,7 @@ class _HomeState extends State<Home> {
             .collection('users')
             .doc(_auth.currentUser!.uid)
             .collection('chats')
+            .orderBy('lastMessageTime', descending: true)
             .snapshots(),
         builder: ((context, snapshot) {
           if (snapshot.hasError) {
@@ -69,10 +76,61 @@ class _HomeState extends State<Home> {
 
         Map<String, dynamic> chatData =
             snapshot.data!.data()! as Map<String, dynamic>;
-        // Use 'chatData' to build your widget
-        // For example:
         return ListTile(
-          title: Text(chatData['chatName']),
+          //papapappappa
+          leading: chatData['chatType'] == 'group'
+              ? CircleAvatar(
+                  backgroundImage:
+                      AssetImage('assets/' + chatData['groupPicture']),
+                )
+              : FutureBuilder<String>(
+                  future:
+                      getUsersProfile(chatData['chatRoomId'], 'profilePicture'),
+                  builder:
+                      (BuildContext context, AsyncSnapshot<String> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return CircularProgressIndicator();
+                    } else {
+                      if (snapshot.hasError)
+                        return Icon(Icons.error);
+                      else
+                        return CircleAvatar(
+                          backgroundImage:
+                              AssetImage('assets/' + snapshot.data!),
+                        );
+                    }
+                  },
+                ),
+          title: chatData['chatType'] == 'group'
+              ? FutureBuilder<String>(
+                  future: getUsersProfile(chatData['chatRoomId'], 'username'),
+                  builder:
+                      (BuildContext context, AsyncSnapshot<String> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return CircularProgressIndicator();
+                    } else {
+                      if (snapshot.hasError)
+                        return Text('Error');
+                      else
+                        return Text(snapshot.data!);
+                    }
+                  },
+                )
+              : Text(chatData['chatName']),
+          subtitle: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  chatData['lastMessage'],
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Text(
+                DateFormat('kk:mm')
+                    .format(chatData['lastMessageTime'].toDate()),
+              ),
+            ],
+          ),
           onTap: () {
             Navigator.push(
               context,
@@ -88,5 +146,28 @@ class _HomeState extends State<Home> {
         );
       },
     );
+  }
+
+  Future<String> getUsersProfile(String chatId, String what) async {
+    UserService _userService = UserService();
+
+    var currentUser = _auth.currentUser?.email;
+    final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
+    var participants;
+    var otherPerson;
+    var otherPersonId;
+    var chatDocument = await _fireStore.collection('chats').doc(chatId).get();
+    participants = chatDocument['participants'];
+
+    if (participants[0] == currentUser) {
+      otherPerson = participants[1];
+    } else {
+      otherPerson = participants[0];
+    }
+    otherPersonId = await _userService.userUsernametoId(otherPerson);
+    var userDocument =
+        await _fireStore.collection('users').doc(otherPersonId).get();
+    var b = userDocument[what];
+    return userDocument[what];
   }
 }
